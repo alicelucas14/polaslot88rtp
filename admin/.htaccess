@@ -1,0 +1,12 @@
+# Admin Directory Protection
+Options -Indexes
+
+<FilesMatch "^(error_log|\.env|\.git|\.user\.ini|\.ht)">
+    <IfModule mod_authz_core.c>
+        Require all denied
+    </IfModule>
+    <IfModule !mod_authz_core.c>
+        Order allow,deny
+        Deny from all
+    </IfModule>
+</FilesMatch>

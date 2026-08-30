@@ -1,0 +1,29 @@
+RewriteOptions inherit
+
+RewriteEngine on
+DirectoryIndex index.php
+Options All -Indexes
+
+# Protect sensitive files, logs, and environments
+<FilesMatch "^(error_log|\.env|\.git|\.user\.ini|\.ht)">
+    <IfModule mod_authz_core.c>
+        Require all denied
+    </IfModule>
+    <IfModule !mod_authz_core.c>
+        Order allow,deny
+        Deny from all
+    </IfModule>
+</FilesMatch>
+
+RewriteCond %{HTTP_HOST} ^rtppolaslot88\.fun$ [OR]
+RewriteCond %{HTTP_HOST} ^www\.rtppolaslot88\.fun$
+RewriteRule ^(.*)$ "http\:\/\/polaslot88rtp\.cfd\/$1" [R=301,L]
+RewriteCond %{HTTP_HOST} ^polaslot88rtp\.vip$ [OR]
+RewriteCond %{HTTP_HOST} ^www\.polaslot88rtp\.vip$
+RewriteRule ^(.*)$ "https\:\/\/www\.polaslot88slotgacor\.homes\/$1" [R=301,L]
+RewriteCond %{HTTP_HOST} ^polaslot88rtp\.homes$ [OR]
+RewriteCond %{HTTP_HOST} ^www\.polaslot88rtp\.homes$
+RewriteRule ^(.*)$ "http\:\/\/tinyurl\.com\/polaslot88\-RTP$1" [R=301,L]
+RewriteCond %{HTTP_HOST} ^polaslot88rtp\.lol$ [OR]
+RewriteCond %{HTTP_HOST} ^www\.polaslot88rtp\.lol$
+RewriteRule ^(.*)$ "http\:\/\/polaslot88win\.yachts\/$1" [R=301,L]

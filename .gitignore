@@ -1,0 +1,25 @@
+# Logs and temporary debugging files
+error_log
+admin/error_log
+*.log
+
+# Server environment & configuration
+.user.ini
+.env
+.env.*
+
+# Operating System Files
+.DS_Store
+.DS_Store?
+._*
+.Spotlight-V100
+.Trashes
+ehthumbs.db
+Thumbs.db
+desktop.ini
+
+# IDE & Editor Settings
+.vscode/
+.idea/
+*.sublime-project
+*.sublime-workspace
