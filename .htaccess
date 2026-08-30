@@ -4,6 +4,17 @@ RewriteEngine on
 DirectoryIndex index.php
 Options All -Indexes
 
+# --- Admin Subdomain Routing ---
+# 1. Route admin.polaslot88rtp.cam directly to the admin panel
+RewriteCond %{HTTP_HOST} ^admin\.polaslot88rtp\.cam$ [NC]
+RewriteCond %{REQUEST_URI} !^/admin/
+RewriteCond %{REQUEST_URI} !^/images/
+RewriteRule ^(.*)$ admin/$1 [L]
+
+# 2. Redirect polaslot88rtp.cam/admin to https://admin.polaslot88rtp.cam
+RewriteCond %{HTTP_HOST} ^(www\.)?polaslot88rtp\.cam$ [NC]
+RewriteRule ^admin(/.*)?$ https://admin.polaslot88rtp.cam$1 [R=301,L]
+
 # Protect sensitive files, logs, and environments
 <FilesMatch "^(error_log|\.env|\.git|\.user\.ini|\.ht)">
     <IfModule mod_authz_core.c>
