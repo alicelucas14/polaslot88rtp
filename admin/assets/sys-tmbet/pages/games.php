@@ -8,33 +8,39 @@
  * @return string The full, valid path to the best available image, or a placeholder.
  */
 function find_game_image_url($filename_from_db) {
+    static $admin_game_map = null;
     $base_image_path = '../images/games/';
-    // It's good practice to create a placeholder image for when no file is found.
     $placeholder_image = '../images/placeholder.png'; 
 
-    // Sanitize to prevent directory traversal issues.
+    if ($admin_game_map === null) {
+        $admin_game_map = [];
+        if (is_dir($base_image_path)) {
+            $files = scandir($base_image_path);
+            foreach ($files as $f) {
+                if ($f !== '.' && $f !== '..') {
+                    $admin_game_map[$f] = true;
+                }
+            }
+        }
+    }
+
     $filename_from_db = basename($filename_from_db);
     $base_name = pathinfo($filename_from_db, PATHINFO_FILENAME);
 
-    // 1. Backward Compatibility Check:
-    // If the database entry already contains an extension (e.g., "game.png").
     if (pathinfo($filename_from_db, PATHINFO_EXTENSION)) {
-        if (file_exists($base_image_path . $filename_from_db)) {
+        if (isset($admin_game_map[$filename_from_db])) {
             return $base_image_path . $filename_from_db;
         }
     }
 
-    // 2. New "Smart Search" Logic:
-    // This array defines the search priority. WEBP is checked first.
     $preferred_extensions = ['webp', 'png', 'jpg', 'jpeg', 'gif'];
     foreach ($preferred_extensions as $ext) {
-        $full_path = $base_image_path . $base_name . '.' . $ext;
-        if (file_exists($full_path)) {
-            return $full_path; // Found the best available format, return it.
+        $candidate = $base_name . '.' . $ext;
+        if (isset($admin_game_map[$candidate])) {
+            return $base_image_path . $candidate;
         }
     }
 
-    // 3. Fallback: If no image file was found after checking all formats.
     return $placeholder_image;
 }
 ?>

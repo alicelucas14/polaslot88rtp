@@ -8,54 +8,76 @@
  * @return string The full, valid path to the best available icon, or a placeholder.
  */
 function find_provider_icon_url($filename_from_db) {
+    static $icon_map = null;
     $base_icon_path = 'images/icons/';
     $placeholder_icon = 'images/placeholder.png'; 
 
+    if ($icon_map === null) {
+        $icon_map = [];
+        if (is_dir($base_icon_path)) {
+            $files = scandir($base_icon_path);
+            foreach ($files as $f) {
+                if ($f !== '.' && $f !== '..') {
+                    $icon_map[$f] = true;
+                }
+            }
+        }
+    }
+
     $filename_from_db = basename($filename_from_db);
-    // Use the filename from the DB as the base name, as it should already be correct.
     $base_name = pathinfo($filename_from_db, PATHINFO_FILENAME);
 
-    // Backward Compatibility Check
     if (pathinfo($filename_from_db, PATHINFO_EXTENSION)) {
-        if (file_exists($base_icon_path . $filename_from_db)) {
+        if (isset($icon_map[$filename_from_db])) {
             return $base_icon_path . $filename_from_db;
         }
     }
 
-    // New "Smart Search" Logic
     $preferred_extensions = ['webp', 'png', 'jpg', 'jpeg', 'gif'];
     foreach ($preferred_extensions as $ext) {
-        $full_path = $base_icon_path . $base_name . '.' . $ext;
-        if (file_exists($full_path)) {
-            return $full_path;
+        $candidate = $base_name . '.' . $ext;
+        if (isset($icon_map[$candidate])) {
+            return $base_icon_path . $candidate;
         }
     }
     
-    // Fallback if no icon is found
     return $placeholder_icon;
 }
 
 /**
- * Smart image finder function for the GAME IMAGES.
+ * Smart image finder function for the GAME IMAGES with high-speed in-memory indexing.
  */
 function find_public_game_image_url($filename_from_db) {
+    static $game_map = null;
     $base_image_path = 'images/games/';
     $placeholder_image = 'images/placeholder.png';
+
+    if ($game_map === null) {
+        $game_map = [];
+        if (is_dir($base_image_path)) {
+            $files = scandir($base_image_path);
+            foreach ($files as $f) {
+                if ($f !== '.' && $f !== '..') {
+                    $game_map[$f] = true;
+                }
+            }
+        }
+    }
 
     $filename_from_db = basename($filename_from_db);
     $base_name = pathinfo($filename_from_db, PATHINFO_FILENAME);
 
     if (pathinfo($filename_from_db, PATHINFO_EXTENSION)) {
-        if (file_exists($base_image_path . $filename_from_db)) {
+        if (isset($game_map[$filename_from_db])) {
             return $base_image_path . $filename_from_db;
         }
     }
 
     $preferred_extensions = ['webp', 'png', 'jpg', 'jpeg', 'gif'];
     foreach ($preferred_extensions as $ext) {
-        $full_path = $base_image_path . $base_name . '.' . $ext;
-        if (file_exists($full_path)) {
-            return $full_path;
+        $candidate = $base_name . '.' . $ext;
+        if (isset($game_map[$candidate])) {
+            return $base_image_path . $candidate;
         }
     }
 

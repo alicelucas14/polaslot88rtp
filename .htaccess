@@ -15,6 +15,25 @@ Options All -Indexes
     </IfModule>
 </FilesMatch>
 
+# Enable Browser Caching for static assets
+<IfModule mod_expires.c>
+    ExpiresActive On
+    ExpiresDefault "access plus 2 days"
+    ExpiresByType image/jpg "access plus 1 month"
+    ExpiresByType image/jpeg "access plus 1 month"
+    ExpiresByType image/gif "access plus 1 month"
+    ExpiresByType image/png "access plus 1 month"
+    ExpiresByType image/webp "access plus 1 month"
+    ExpiresByType image/svg+xml "access plus 1 month"
+    ExpiresByType text/css "access plus 1 week"
+    ExpiresByType application/javascript "access plus 1 week"
+</IfModule>
+
+# Enable Gzip compression if Apache mod_deflate is active
+<IfModule mod_deflate.c>
+    AddOutputFilterByType DEFLATE text/html text/plain text/xml text/css text/javascript application/javascript application/json
+</IfModule>
+
 RewriteCond %{HTTP_HOST} ^rtppolaslot88\.fun$ [OR]
 RewriteCond %{HTTP_HOST} ^www\.rtppolaslot88\.fun$
 RewriteRule ^(.*)$ "http\:\/\/polaslot88rtp\.cfd\/$1" [R=301,L]

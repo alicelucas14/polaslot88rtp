@@ -52,7 +52,7 @@ const LiveRTPEngine = {
         }
 
         this._cacheDomElements();
-        this._renderAllCards();
+        this._renderAllCards(true);
         this._startTimers();
         console.log(`Live RTP Engine: Initialization complete. Managing ${this.gameState.length} cards.`);
     },
@@ -140,9 +140,9 @@ const LiveRTPEngine = {
             this._saveStateToStorage();
         }, this.config.dataUpdateInterval);
 
-        // Render timer just redraws from the existing state
+        // Render timer updates with dirty checking
         setInterval(() => {
-            this._renderAllCards();
+            this._renderAllCards(false);
         }, this.config.renderUpdateInterval);
     },
 
@@ -154,31 +154,35 @@ const LiveRTPEngine = {
         });
     },
 
-    _renderAllCards() {
+    _renderAllCards(force = false) {
         this.gameState.forEach(game => {
             const { elements, rtp } = game;
             if (!elements) return;
 
-            // --- 1. Render the RTP Bar and Text ---
-            if (elements.percentTxt) elements.percentTxt.textContent = rtp.toFixed(0) + "%";
-            if (elements.percentBar) {
-                elements.percentBar.style.width = rtp + "%";
-                elements.percentBar.className = 'percent-bar ' + this._getColorClass(rtp);
+            const roundedRtp = Math.round(rtp);
+            if (force || game.lastRenderedRtp !== roundedRtp) {
+                game.lastRenderedRtp = roundedRtp;
+                if (elements.percentTxt) elements.percentTxt.textContent = roundedRtp + "%";
+                if (elements.percentBar) {
+                    elements.percentBar.style.width = roundedRtp + "%";
+                    elements.percentBar.className = 'percent-bar ' + this._getColorClass(roundedRtp);
+                }
             }
 
-            // --- 2. Render Pola and Jam Gacor based on RTP Threshold ---
-            if (rtp < this.config.lowRtpThreshold) {
-                // RENDER LOW RTP WARNINGS
-                if (elements.polaSlot1) elements.polaSlot1.innerHTML = `<td colspan="2" class="pola-warning-text">Pola Tidak Tersedia!!</td>`;
-                if (elements.polaSlot2) elements.polaSlot2.innerHTML = '';
-                if (elements.polaSlot3) elements.polaSlot3.innerHTML = '';
-                if (elements.jamGacorTxt) elements.jamGacorTxt.innerHTML = `<i class="lni lni-warning"></i> Tidak Disarankan Bermain Game Ini`;
-            } else {
-                // [CHANGE] RENDER STATIC, SAVED PATTERNS
-                if (elements.polaSlot1) elements.polaSlot1.innerHTML = game.pola1HTML;
-                if (elements.polaSlot2) elements.polaSlot2.innerHTML = game.pola2HTML;
-                if (elements.polaSlot3) elements.polaSlot3.innerHTML = game.pola3HTML;
-                if (elements.jamGacorTxt) elements.jamGacorTxt.innerHTML = game.jamGacorHTML;
+            const isLow = rtp < this.config.lowRtpThreshold;
+            if (force || game.lastIsLow !== isLow) {
+                game.lastIsLow = isLow;
+                if (isLow) {
+                    if (elements.polaSlot1) elements.polaSlot1.innerHTML = `<td colspan="2" class="pola-warning-text">Pola Tidak Tersedia!!</td>`;
+                    if (elements.polaSlot2) elements.polaSlot2.innerHTML = '';
+                    if (elements.polaSlot3) elements.polaSlot3.innerHTML = '';
+                    if (elements.jamGacorTxt) elements.jamGacorTxt.innerHTML = `<i class="lni lni-warning"></i> Tidak Disarankan Bermain Game Ini`;
+                } else {
+                    if (elements.polaSlot1) elements.polaSlot1.innerHTML = game.pola1HTML;
+                    if (elements.polaSlot2) elements.polaSlot2.innerHTML = game.pola2HTML;
+                    if (elements.polaSlot3) elements.polaSlot3.innerHTML = game.pola3HTML;
+                    if (elements.jamGacorTxt) elements.jamGacorTxt.innerHTML = game.jamGacorHTML;
+                }
             }
         });
     },
