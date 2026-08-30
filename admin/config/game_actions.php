@@ -32,21 +32,23 @@ function handle_game_image_upload($file_input_name) {
     $new_full_filename = $safe_base_name . '.' . $extension;
     $target_file = $target_dir . $new_full_filename;
     
-    // Check if a file with the same name but DIFFERENT extension already exists to prevent duplicates.
-    // e.g., prevent uploading 'game.webp' if 'game.png' already exists.
-    $existing_files = glob($target_dir . $safe_base_name . '.*');
-    if (!empty($existing_files)) {
-         return ['error' => 'An image with this base name but a different extension already exists (e.g., .png or .jpg). Please rename the file or delete the old one.'];
-    }
-
-    // Allow certain file formats (added .webp)
+    // Allow certain file formats (added .webp, .avif)
     $allowed_types = ['jpg', 'png', 'jpeg', 'gif', 'webp', 'avif'];
     if (!in_array($extension, $allowed_types)) {
         return ['error' => 'Sorry, only JPG, PNG, GIF, WEBP & AVIF files are allowed.'];
     }
 
+    // Clean up any old duplicate with a different extension so the new one takes priority
+    $existing_files = glob($target_dir . $safe_base_name . '.*');
+    if (!empty($existing_files)) {
+        foreach ($existing_files as $f) {
+            if ($f !== $target_file && file_exists($f)) {
+                @unlink($f);
+            }
+        }
+    }
+
     if (move_uploaded_file($_FILES[$file_input_name]["tmp_name"], $target_file)) {
-        // [MODIFIED] Return only the safe base name
         return ['basename' => $safe_base_name];
     } else {
         return ['error' => 'Sorry, there was an error uploading the file. Check folder permissions.'];
@@ -78,14 +80,17 @@ switch ($action) {
         $title = mysqli_real_escape_string($data, $_POST['game_title']);
         $link = mysqli_real_escape_string($data, $_POST['demo_gamelink']);
 
-        $upload_result = handle_game_image_upload('demo_name');
-        if (isset($upload_result['error'])) {
-            redirect_with_alert($upload_result['error'], $redirect_url);
+        if (!empty($_POST['existing_image_name'])) {
+            // Use existing image name on server
+            $basename = preg_replace("/[^a-zA-Z0-9-_\.]/", "", basename($_POST['existing_image_name']));
+        } else {
+            $upload_result = handle_game_image_upload('demo_name');
+            if (isset($upload_result['error'])) {
+                redirect_with_alert($upload_result['error'], $redirect_url);
+            }
+            $basename = $upload_result['basename'];
         }
-        // [MODIFIED] Get the base name from the upload result
-        $basename = $upload_result['basename'];
 
-        // [MODIFIED] Insert the base name (without extension) into the database
         $sql = "INSERT INTO demo_games (demo_provider, game_title, demo_name, demo_gamelink) VALUES ('$provider', '$title', '$basename', '$link')";
         
         if (mysqli_query($data, $sql)) {

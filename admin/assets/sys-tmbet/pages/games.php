@@ -33,11 +33,27 @@ function find_game_image_url($filename_from_db) {
         }
     }
 
+    // Build candidate base names (supporting both 2-digit and 3-digit zero-padding, e.g. -99, -099, -100)
+    $candidate_bases = [$base_name];
+    if (preg_match('/^([a-zA-Z0-9]+)[-_](\d+)$/', $base_name, $m)) {
+        $prefix = $m[1];
+        $num = (int)$m[2];
+        $candidate_bases[] = $prefix . '-' . $num;
+        $candidate_bases[] = $prefix . '-' . sprintf('%02d', $num);
+        $candidate_bases[] = $prefix . '-' . sprintf('%03d', $num);
+        $candidate_bases[] = $prefix . '_' . $num;
+        $candidate_bases[] = $prefix . '_' . sprintf('%02d', $num);
+        $candidate_bases[] = $prefix . '_' . sprintf('%03d', $num);
+    }
+    $candidate_bases = array_unique($candidate_bases);
+
     $preferred_extensions = ['webp', 'png', 'jpg', 'jpeg', 'gif'];
-    foreach ($preferred_extensions as $ext) {
-        $candidate = $base_name . '.' . $ext;
-        if (isset($admin_game_map[$candidate])) {
-            return $base_image_path . $candidate;
+    foreach ($candidate_bases as $cb) {
+        foreach ($preferred_extensions as $ext) {
+            $candidate = $cb . '.' . $ext;
+            if (isset($admin_game_map[$candidate])) {
+                return $base_image_path . $candidate;
+            }
         }
     }
 
@@ -89,7 +105,7 @@ function find_game_image_url($filename_from_db) {
                     $search = isset($_GET['search']) ? mysqli_real_escape_string($data, $_GET['search']) : '';
                     $where_clause = "WHERE demo_provider = '$provider_code'" . (!empty($search) ? " AND game_title LIKE '%$search%'" : '');
                     
-                    $games_sql = "SELECT * FROM demo_games $where_clause ORDER BY game_title ASC LIMIT $limit OFFSET $offset";
+                    $games_sql = "SELECT * FROM demo_games $where_clause ORDER BY id DESC LIMIT $limit OFFSET $offset";
                     $games_query = mysqli_query($data, $games_sql);
                     $total_games = mysqli_fetch_assoc(mysqli_query($data, "SELECT COUNT(id) AS total FROM demo_games $where_clause"))['total'];
                     $total_pages = ceil($total_games / $limit);
@@ -173,6 +189,6 @@ function find_game_image_url($filename_from_db) {
 </div>
 
 <!-- Modals are unchanged -->
-<div class="modal fade" id="addGameModal" tabindex="-1"><div class="modal-dialog modal-lg"><div class="modal-content"><form action="config/game_actions.php" method="POST" enctype="multipart/form-data"><input type="hidden" name="action" value="add_game"><input type="hidden" name="demo_provider" value="<?php echo isset($_GET['game']) ? htmlspecialchars($_GET['game']) : ''; ?>"><div class="modal-header"><h5 class="modal-title">Add New Game</h5><button type="button" class="close" data-dismiss="modal">×</button></div><div class="modal-body"><div class="form-group"><label>Game Title</label><input type="text" name="game_title" class="form-control" required></div><div class="form-group"><label>Game Image File</label><input type="file" name="demo_name" class="form-control" required><small>Image filename should be unique (e.g., provider-gamename.png)</small></div><div class="form-group"><label>Game Demo Link (Optional)</label><input type="text" name="demo_gamelink" class="form-control" placeholder="#"></div></div><div class="modal-footer"><button type="button" class="btn btn-secondary" data-dismiss="modal">Close</button><button type="submit" class="btn btn-primary">Save Game</button></div></form></div></div></div>
+<div class="modal fade" id="addGameModal" tabindex="-1"><div class="modal-dialog modal-lg"><div class="modal-content"><form action="config/game_actions.php" method="POST" enctype="multipart/form-data"><input type="hidden" name="action" value="add_game"><input type="hidden" name="demo_provider" value="<?php echo isset($_GET['game']) ? htmlspecialchars($_GET['game']) : ''; ?>"><div class="modal-header"><h5 class="modal-title">Add New Game</h5><button type="button" class="close" data-dismiss="modal">×</button></div><div class="modal-body"><div class="form-group"><label>Game Title</label><input type="text" name="game_title" class="form-control" required placeholder="e.g. Gates of Olympus"></div><div class="form-group"><label>Upload Game Image</label><input type="file" name="demo_name" class="form-control"><small class="text-muted">Choose an image from your device.</small></div><div class="form-group"><label>OR Existing Image Filename (Optional)</label><input type="text" name="existing_image_name" class="form-control" placeholder="e.g. eagaming-100.png or pp-305"><small class="text-muted">Use this if the image file is already placed in images/games/</small></div><div class="form-group"><label>Game Demo Link (Optional)</label><input type="text" name="demo_gamelink" class="form-control" placeholder="#"></div></div><div class="modal-footer"><button type="button" class="btn btn-secondary" data-dismiss="modal">Close</button><button type="submit" class="btn btn-primary">Save Game</button></div></form></div></div></div>
 <div class="modal fade" id="editGameModal" tabindex="-1"><div class="modal-dialog modal-lg"><div class="modal-content"><form action="config/game_actions.php" method="POST" enctype="multipart/form-data"><input type="hidden" name="action" value="edit_game"><input type="hidden" name="id" id="edit_game_id"><input type="hidden" name="demo_provider" value="<?php echo isset($_GET['game']) ? htmlspecialchars($_GET['game']) : ''; ?>"><div class="modal-header"><h5 class="modal-title">Edit Game</h5><button type="button" class="close" data-dismiss="modal">×</button></div><div class="modal-body"><div class="form-group"><label>Game Title</label><input type="text" name="game_title" id="edit_game_title" class="form-control" required></div><div class="form-group"><label>New Game Image (Optional)</label><input type="file" name="demo_name" class="form-control"><small>Only select a file if you want to replace the current image.</small></div><div class="form-group"><label>Game Demo Link</label><input type="text" name="demo_gamelink" id="edit_game_link" class="form-control"></div><p>Current Image:</p><img src="" id="edit_game_image_preview" width="100" class="border"></div><div class="modal-footer"><button type="button" class="btn btn-secondary" data-dismiss="modal">Close</button><button type="submit" class="btn btn-primary">Save Changes</button></div></form></div></div></div>
 <div class="modal fade" id="deleteGameModal" tabindex="-1"><div class="modal-dialog"><div class="modal-content"><form action="config/game_actions.php" method="POST"><input type="hidden" name="action" value="delete_game"><input type="hidden" name="id" id="delete_game_id"><input type="hidden" name="demo_provider" value="<?php echo isset($_GET['game']) ? htmlspecialchars($_GET['game']) : ''; ?>"><div class="modal-header"><h5 class="modal-title">Confirm Deletion</h5><button type="button" class="close" data-dismiss="modal">×</button></div><div class="modal-body"><p>Are you sure you want to delete this game: <strong id="delete_game_title"></strong>?</p><p class="text-danger">This action cannot be undone.</p></div><div class="modal-footer"><button type="button" class="btn btn-secondary" data-dismiss="modal">Cancel</button><button type="submit" class="btn btn-danger">Delete Game</button></div></form></div></div></div>

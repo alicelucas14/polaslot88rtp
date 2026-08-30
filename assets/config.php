@@ -73,11 +73,27 @@ function find_public_game_image_url($filename_from_db) {
         }
     }
 
+    // Build candidate base names (supporting both 2-digit and 3-digit zero-padding, e.g. -99, -099, -100)
+    $candidate_bases = [$base_name];
+    if (preg_match('/^([a-zA-Z0-9]+)[-_](\d+)$/', $base_name, $m)) {
+        $prefix = $m[1];
+        $num = (int)$m[2];
+        $candidate_bases[] = $prefix . '-' . $num;
+        $candidate_bases[] = $prefix . '-' . sprintf('%02d', $num);
+        $candidate_bases[] = $prefix . '-' . sprintf('%03d', $num);
+        $candidate_bases[] = $prefix . '_' . $num;
+        $candidate_bases[] = $prefix . '_' . sprintf('%02d', $num);
+        $candidate_bases[] = $prefix . '_' . sprintf('%03d', $num);
+    }
+    $candidate_bases = array_unique($candidate_bases);
+
     $preferred_extensions = ['webp', 'png', 'jpg', 'jpeg', 'gif'];
-    foreach ($preferred_extensions as $ext) {
-        $candidate = $base_name . '.' . $ext;
-        if (isset($game_map[$candidate])) {
-            return $base_image_path . $candidate;
+    foreach ($candidate_bases as $cb) {
+        foreach ($preferred_extensions as $ext) {
+            $candidate = $cb . '.' . $ext;
+            if (isset($game_map[$candidate])) {
+                return $base_image_path . $candidate;
+            }
         }
     }
 
