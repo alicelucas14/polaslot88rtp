@@ -9,8 +9,13 @@
  */
 function find_game_image_url($filename_from_db) {
     static $admin_game_map = null;
-    $base_image_path = '../images/games/';
-    $placeholder_image = '../images/placeholder.png'; 
+    static $base_image_path = null;
+    static $placeholder_image = null;
+
+    if ($base_image_path === null) {
+        $base_image_path = is_dir('images/games/') ? 'images/games/' : '../images/games/';
+        $placeholder_image = is_file('images/placeholder.png') ? 'images/placeholder.png' : '../images/placeholder.png';
+    }
 
     if ($admin_game_map === null) {
         $admin_game_map = [];
