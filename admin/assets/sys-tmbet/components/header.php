@@ -71,7 +71,7 @@ $_SESSION['timeout'] = time();
                          <!-- Logo text -->
                         <span class="logo-text">
                              <!-- dark Logo text -->
-                             <img src="assets/images/logo-new.png" alt="homepage" width="100" />
+                             <img src="assets/images/polaslot88-logo.webp" alt="homepage" style="max-height: 42px; width: auto; max-width: 180px;" />
                             
                         </span>
                         <!-- Logo icon -->
