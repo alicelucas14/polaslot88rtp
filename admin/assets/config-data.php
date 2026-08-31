@@ -1,9 +1,9 @@
 <?php
 
 $d_host = "localhost";
-$d_name = "db_polaslot88rtpb";
-$d_password = "mHzDhsWMaZLh4XLs";
-$d_dbname = "db_polaslot88rtpb";
+$d_name = "polaslot88rtp";
+$d_password = "DJ85pahyjzPfRBwj";
+$d_dbname = "polaslot88rtp";
 
 $data = mysqli_connect($d_host, $d_name, $d_password, $d_dbname);
 $today = date("Y-m-d H:i:s");
